@@ -1,0 +1,4 @@
+torch
+transformers
+langchain
+llama_index
