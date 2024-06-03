@@ -14,6 +14,7 @@ __pycache__/
 *.pth
 *.pt
 *.gguf
+*.DS_Store
 
 # Distribution / packaging
 .Python
