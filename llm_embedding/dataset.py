@@ -18,11 +18,11 @@ class RecDataset(Dataset):
 
         if self.data_type == 'train':
             for user, seq in enumerate(user_seq):
-                input_ids = seq[-(self.max_len + 2):-2]  # train data는 맨 뒤 두개 떼고
+                input_ids = seq[-(self.max_len + 2):-2]  # train data는 맨 뒤 두개 사용 안함
 
                 for i in range(len(input_ids)):
-                    self.user_seq.append(input_ids[:i + 1])  # [1,2,3]시퀀스가 -> 1 / 1,2 / 1,2,3 이렇게 append
-                    self.user_ids.append(user)  # 첫번째 루프 0번째 user (self.user_seq에는 0번째 유저의 시퀀스 조각들)
+                    self.user_seq.append(input_ids[:i + 1])  
+                    self.user_ids.append(user)
 
             total_sequences = len(self.user_seq)
 
@@ -39,7 +39,7 @@ class RecDataset(Dataset):
                 
         elif self.data_type == 'valid':
             for sequence in user_seq:
-                self.user_seq.append(sequence[:-1])  # valid data는 맨 뒤 한개 떼고
+                self.user_seq.append(sequence[:-1])  # valid data는 맨 뒤 한개 사용
         else:
             self.user_seq = user_seq  # test
 

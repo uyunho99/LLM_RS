@@ -18,7 +18,7 @@ def open_data_dict(file_path):
     return contents_dict
 
 def get_embedding_for_text(input_text, max_length=None):
-    embeddings = LlamaCppEmbeddings(model_path='/data/log-data-2024/yh/Embedding_test/model/Llama-3-8B-Instruct-Gradient-1048k-Q4_K_M.gguf')
+    embeddings = LlamaCppEmbeddings(model_path='./Llama-3-8B-Instruct-Gradient-1048k-Q4_K_M.gguf')
     if isinstance(input_text, list):
         embedding_output = [torch.tensor(embeddings.client.embed(text)) for text in input_text]
     elif isinstance(input_text, str):
@@ -37,21 +37,23 @@ def get_embedding_for_text(input_text, max_length=None):
     return embedding_output
 
 def pad_or_truncate(tensor, max_length):
-    if tensor.size(0) < max_length:
+    if tensor.size(0) < max_length: # Paddding
         padding = torch.zeros(max_length - tensor.size(0), tensor.size(1))
         tensor = torch.cat((tensor, padding), dim=0)
-    else:
-        tensor = tensor[:max_length]
+    else: 
+        tensor = tensor[:max_length] # Truncate
     return tensor
 
 def build_embedding_vector_dict(args, hidden_size):
     global embedding_vec_dict 
 
-    embedding_vec_dict_path = os.path.join(args.data_dir, 'embedding_vec_dict.pt')
+    embedding_vec_dict_path = os.path.join(args.data_dir, 'embedding_vec_dict.pt') 
     
+    # 이미 저장된 임베딩 딕셔너리가 있으면 불러옴
     if os.path.exists(embedding_vec_dict_path):
         embedding_vec_dict = torch.load(embedding_vec_dict_path)
 
+    # 없으면 새로 생성
     else:
         args.data_file = args.data_dir + args.data_json_name + '.txt'
         contents_dict = open_data_dict(args.data_file)
@@ -77,43 +79,46 @@ def convert_embedding_vector(hidden_size, batch_size, sequence, embedding_vec_di
     embedding_sequence = []
 
     if isinstance(sequence, torch.Tensor):
-        sequence = sequence.tolist()  # Convert tensor to list if needed
+        sequence = sequence.tolist()
 
     if not isinstance(sequence, list):
         raise TypeError(f"Expected input sequence to be a list, but got {type(sequence)} instead.")
 
     for seq in sequence:
         if isinstance(seq, int):
-            seq = [seq]  # Convert single integers to lists
+            seq = [seq]
         emb_list = []
         for s in seq:
-            # Handle missing keys by providing a zero tensor or any default embedding
+            # embedding_vec_dict에 키가 없으면 제로 텐서를 사용
             if s not in embedding_vec_dict:
                 print(f"Warning: Key {s} not found in embedding_vec_dict. Using zero tensor as default.")
                 emb = torch.zeros(max_seq_length, hidden_size)
             else:
                 emb = embedding_vec_dict[s]
-            if emb.dim() == 2:
-                emb = emb.unsqueeze(0)  # Add a dimension if it's 2D
-            elif emb.dim() == 3 and emb.size(0) == 1:
-                emb = emb.squeeze(0)  # Remove the extra dimension if it's [1, seq_len, hidden_size]
-            emb_list.append(emb)
         
-        # Stack the embeddings along the first dimension (sequence length)
-        emb_tensor = torch.cat(emb_list, dim=0)  # Concatenate instead of stacking to avoid extra dimensions
-        
-        # Ensure the tensor has the correct shape [seq_len, hidden_size]
+            if emb.dim() == 2: # emb가 [seq_len, hidden_size] 형태인 경우, batch 차원을 추가
+                emb = emb.unsqueeze(0) 
+            elif emb.dim() == 3 and emb.size(0) == 1: # emb가 [1, seq_len, hidden_size] 형태인 경우, 차원을 제거
+                emb = emb.squeeze(0)
+            emb_list.append(emb) # 각 시퀀스의 임베딩을 리스트에 추가
+
+        # emb_list에 있는 모든 텐서를 concat해 하나의 텐서로 만듦(batch 차원을 기준으로)
+        emb_tensor = torch.cat(emb_list, dim=0)
+
+        # emb_tensor의 차원이 3이고, 두 번째 차원이 max_seq_length인 경우, (max_seq_length, hidden_size)로 변환
         if emb_tensor.dim() == 3 and emb_tensor.size(1) == max_seq_length:
             emb_tensor = emb_tensor.view(max_seq_length, hidden_size)
         
+        # emb_tensor의 길이가 max_seq_length보다 작으면 패딩을 추가
         if emb_tensor.size(0) < max_seq_length:
             padding = torch.zeros(max_seq_length - emb_tensor.size(0), hidden_size)
             emb_tensor = torch.cat([emb_tensor, padding], dim=0)
+        # emb_tensor의 길이가 max_seq_length보다 크면 잘라냄
         elif emb_tensor.size(0) > max_seq_length:
-            emb_tensor = emb_tensor[:max_seq_length]  # Truncate to max_seq_length
+            emb_tensor = emb_tensor[:max_seq_length]
         embedding_sequence.append(emb_tensor)
     
-    # Convert list to tensor with shape [batch_size, max_seq_length, hidden_size]
+    # embedding_sequence에 있는 모든 텐서를 concat해 하나의 텐서로 만듦(batch 차원을 기준으로)
     result = torch.stack(embedding_sequence, dim=0)
     
     return result

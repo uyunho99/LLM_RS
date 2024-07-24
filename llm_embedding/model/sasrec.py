@@ -13,12 +13,9 @@ class SASRecModel(SequentialRecModel):
         self.LayerNorm = LayerNorm(args.hidden_size, eps=1e-12)
         self.dropout = nn.Dropout(args.hidden_dropout_prob)
 
-        # Define item_embeddings layer
-        self.item_embeddings = nn.Embedding(args.item_size, args.hidden_size, padding_idx=0)
         self.item_encoder = TransformerEncoder(args)
         self.apply(self.init_weights)
         
-        # 추가
         self.args = args
         self.batch_size = args.batch_size
         self.hidden_size = args.hidden_size
@@ -27,10 +24,8 @@ class SASRecModel(SequentialRecModel):
         extended_attention_mask = self.get_attention_mask(input_ids)
 
         sequence_emb = self.add_position_embedding(input_ids)
-        item_encoded_layers = self.item_encoder(sequence_emb,
-                                                extended_attention_mask,
-                                                output_all_encoded_layers=True,
-                                                )
+        item_encoded_layers = self.item_encoder(sequence_emb, extended_attention_mask, output_all_encoded_layers=True)
+        
         if all_sequence_output:
             sequence_output = item_encoded_layers
         else:
@@ -52,7 +47,6 @@ class SASRecModel(SequentialRecModel):
         pos_emb = convert_embedding_vector(self.hidden_size, self.batch_size, pos_ids.tolist(), model_emb.embedding_vec_dict, self.args.max_seq_length)
         neg_emb = convert_embedding_vector(self.hidden_size, self.batch_size, neg_ids.tolist(), model_emb.embedding_vec_dict, self.args.max_seq_length)
 
-        # [batch hidden_size]
         seq_emb = seq_out  # [batch, hidden_size]
 
         # Reshape pos_emb and neg_emb to [batch, hidden_size]

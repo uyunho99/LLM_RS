@@ -12,8 +12,8 @@ class SequentialRecModel(nn.Module):
         self.position_embeddings = nn.Embedding(args.max_seq_length, args.hidden_size)
         self.batch_size = args.batch_size
         self.hidden_size = args.hidden_size
-        self.LayerNorm = LayerNorm(args.hidden_size, eps=1e-12)  # LayerNorm 초기화
-        self.dropout = nn.Dropout(args.hidden_dropout_prob)  # Dropout 초기화
+        self.LayerNorm = LayerNorm(args.hidden_size, eps=1e-12)
+        self.dropout = nn.Dropout(args.hidden_dropout_prob)
         self.embedding_vec_dict = args.embedding_vec_dict
 
     def add_position_embedding(self, sequence):
@@ -22,12 +22,16 @@ class SequentialRecModel(nn.Module):
         position_ids = torch.arange(seq_length, dtype=torch.long, device=sequence.device)
         position_ids = position_ids.unsqueeze(0).expand(sequence.size(0), seq_length)
         
+        # item_embeddings: text 데이터의 임베딩 벡터로 활용 ([batch_size, seq_length, hidden_size])
         item_embeddings = convert_embedding_vector(self.hidden_size, self.batch_size, sequence, model_emb.embedding_vec_dict, self.args.max_seq_length)
         position_embeddings = self.position_embeddings(position_ids)
         
+        # item_embeddings의 길이가 position_embeddings보다 짧을 경우 padding을 추가
         if position_embeddings.size(1) < item_embeddings.size(1):
             padding = torch.zeros(position_embeddings.size(0), item_embeddings.size(1) - position_embeddings.size(1), self.hidden_size, device=sequence.device)
             position_embeddings = torch.cat([position_embeddings, padding], dim=1)
+        
+        # item_embeddings의 길이가 position_embeddings보다 길 경우 잘라냄
         elif position_embeddings.size(1) > item_embeddings.size(1):
             position_embeddings = position_embeddings[:, :item_embeddings.size(1)]
         
