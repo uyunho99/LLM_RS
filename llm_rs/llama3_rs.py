@@ -13,7 +13,7 @@ from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
 from peft import LoraConfig
 from trl import SFTTrainer
 
-subprocess.run(["huggingface-cli", "login", "--token", "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"])
+subprocess.run(["huggingface-cli", "login", "--token", "[your token]"])
 
 # Data
 with open(file='/data/log-data-2024/prompt_data.pickle', mode='rb') as f:
