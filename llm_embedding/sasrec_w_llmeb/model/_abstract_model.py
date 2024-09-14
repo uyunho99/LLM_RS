@@ -7,22 +7,44 @@ class SequentialRecModel(nn.Module):
     def __init__(self, args):
         super(SequentialRecModel, self).__init__()
         self.args = args
+        self.hidden_size = 128
+
         self.item_embeddings = nn.Embedding(args.item_size, args.hidden_size, padding_idx=0)
         self.position_embeddings = nn.Embedding(args.max_seq_length, args.hidden_size)
         self.batch_size = args.batch_size
+        
+        self.embedding_vec_dict = torch.load('/data/log-data-2024/yh/LLM_EB/src/data/embedding_vec_dict_reduced_128.pt')
 
+    def get_pretrained_embedding(self, sequence):
+        batch_size, seq_length = sequence.size()
+        pretrained_embeddings = torch.zeros(batch_size, seq_length, self.hidden_size).to(sequence.device)
+
+        for i in range(batch_size):
+            for j in range(seq_length):
+                item_id = sequence[i, j].item()
+                if item_id in self.embedding_vec_dict:
+                    # 아이템에 해당하는 사전 학습 임베딩을 사용
+                    pretrained_embeddings[i, j, :] = self.embedding_vec_dict[item_id].to(sequence.device).float()
+
+        return pretrained_embeddings
+    
     def add_position_embedding(self, sequence):
         seq_length = sequence.size(1)
         position_ids = torch.arange(seq_length, dtype=torch.long, device=sequence.device)
         position_ids = position_ids.unsqueeze(0).expand_as(sequence)
+        
         item_embeddings = self.item_embeddings(sequence)
+        pretrained_embeddings = self.get_pretrained_embedding(sequence)
+        combined_embeddings = item_embeddings + pretrained_embeddings
+
         position_embeddings = self.position_embeddings(position_ids)
-        sequence_emb = item_embeddings + position_embeddings
+        sequence_emb = combined_embeddings + position_embeddings
+        
         sequence_emb = self.LayerNorm(sequence_emb)
         sequence_emb = self.dropout(sequence_emb)
 
         return sequence_emb
-
+    
     def init_weights(self, module):
         """ Initialize the weights."""
         if isinstance(module, (nn.Linear, nn.Embedding)):
@@ -76,4 +98,3 @@ class SequentialRecModel(nn.Module):
 
     def calculate_loss(self, input_ids, answers):
         pass
-
