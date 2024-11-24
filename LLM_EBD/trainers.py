@@ -18,7 +18,6 @@ class Trainer:
         if self.cuda_condition:
             self.model.cuda()
 
-        # Setting the train and test data loader
         self.train_dataloader = train_dataloader
         self.eval_dataloader = eval_dataloader
         self.test_dataloader = test_dataloader
@@ -79,7 +78,6 @@ class Trainer:
     def iteration(self, epoch, dataloader, train=True):
 
         str_code = "train" if train else "test"
-        # Setting the tqdm progress bar
         rec_data_iter = tqdm.tqdm(enumerate(dataloader),
                                   desc="Mode_%s:%d" % (str_code, epoch),
                                   total=len(dataloader),

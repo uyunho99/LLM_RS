@@ -13,7 +13,7 @@ class SequentialRecModel(nn.Module):
         self.position_embeddings = nn.Embedding(args.max_seq_length, args.hidden_size)
         self.batch_size = args.batch_size
         
-        self.embedding_vec_dict = torch.load('/data/log-data-2024/yh/LLM_EB/src/data/embedding_vec_dict_reduced_128.pt')
+        self.embedding_vec_dict = torch.load('/data/log-data-2024/yh/LLM_EB/src/data/embedding_vec_dict_reduced_256.pt')
 
     def get_pretrained_embedding(self, sequence):
         batch_size, seq_length = sequence.size()

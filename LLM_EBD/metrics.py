@@ -22,7 +22,6 @@ def ndcg_k(actual, predicted, topk):
         res += dcg_k / idcg
     return res / float(len(actual))
 
-# Calculates the ideal discounted cumulative gain at k
 def idcg_k(k):
     res = sum([1.0/math.log(i+2, 2) for i in range(k)])
     if not res:
