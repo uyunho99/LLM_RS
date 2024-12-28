@@ -33,7 +33,7 @@ class Args:
     variance = 5
     model_type = 'sasrec'
     max_seq_length = 10
-    hidden_size = 256
+    hidden_size = 128
     num_hidden_layers = 2
     hidden_act = "gelu"
     num_attention_heads = 2
@@ -109,4 +109,4 @@ if __name__ == "__main__":
     logger.info(args.train_name)
     logger.info(result_info)
     
-torch.save(model, './llmeb_arc_final.pt')
+torch.save(model, './llmeb_1127.pt')

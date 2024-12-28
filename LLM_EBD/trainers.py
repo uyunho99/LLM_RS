@@ -10,6 +10,8 @@ class Trainer:
         super(Trainer, self).__init__()
 
         self.args = args
+        
+        # cuda gpu 사용하는 경우
         self.logger = logger
         self.cuda_condition = torch.cuda.is_available() and not self.args.no_cuda
         self.device = torch.device("cuda" if self.cuda_condition else "cpu")
@@ -17,6 +19,12 @@ class Trainer:
         self.model = model
         if self.cuda_condition:
             self.model.cuda()
+        
+        # cuda gpu 사용하지 않을 경우    
+        # self.cuda_condition = self.args.no_cuda
+        # self.device = torch.device("cpu")
+        
+        # self.model = model
 
         self.train_dataloader = train_dataloader
         self.eval_dataloader = eval_dataloader
@@ -78,6 +86,7 @@ class Trainer:
     def iteration(self, epoch, dataloader, train=True):
 
         str_code = "train" if train else "test"
+        # Setting the tqdm progress bar
         rec_data_iter = tqdm.tqdm(enumerate(dataloader),
                                   desc="Mode_%s:%d" % (str_code, epoch),
                                   total=len(dataloader),

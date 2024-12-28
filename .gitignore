@@ -6,7 +6,7 @@ __pycache__/
 # C extensions
 *.so
 *.env
-*.json
+# *.json
 *.pkl
 *.h5
 *.hdf5
