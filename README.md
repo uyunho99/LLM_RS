@@ -1,4 +1,4 @@
-# LLM_RS Repository
+# LLM_RS
 
 This repository explores the integration of Large Language Models (LLMs) into recommendation systems (RS) and related applications. It is organized into three primary modules: **LLM for Embedding**, **LLM as RS**, and **LLM Message Generator**. Each module serves a distinct role in leveraging LLMs for personalized content recommendations and customer interaction.
 
@@ -24,3 +24,5 @@ LLM을 RS에 다양한 방법으로 적용하는 프로젝트입니다.
     - SASREC 알고리즘 출처: https://github.com/yehjin-shin/BSARec
 - LLM as RS: LLM Agent에게 다음 콘텐츠를 추천하는 추천 시스템 역할을 수행하게 하는 방법
 - LLM Message Generator: LLM Agent에게 추천 시스템이 추천한 콘텐츠의 추천 이유에 대해서 고객들에게 설득할만한 추천 문구를 만드는 역할을 수행하게 하는 방법
+
+You can feel free to contact @uyunho99 for more information.
